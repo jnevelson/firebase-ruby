@@ -1,4 +1,4 @@
-require 'typhoeus'
+require 'faraday'
 require 'json'
 require 'open-uri'
 require 'uri'
@@ -32,25 +32,21 @@ class Firebase
       process(:patch, path, value.to_json, query_options)
     end
 
-    def build_url(path)
+    def build_url(path, query_options)
       path = "#{path}.json"
       url = URI.join(base_uri, path)
-
-      url.to_s
+      url += "?#{URI.encode_www_form(query_options)}"
+      url
     end
 
     private
 
     def process(method, path, body=nil, query_options={})
-      @@hydra ||= Typhoeus::Hydra.new
-      request = Typhoeus::Request.new(build_url(path),
-                                      :body => body,
-                                      :method => method,
-                                      :params => query_options)
-      @@hydra.queue(request)
-      @@hydra.run
+      conn = Faraday.send(method, build_url(path, query_options)) do |faraday|
+        faraday.body = body if body
+      end
 
-      Firebase::Response.new(request.response)
+      Firebase::Response.new(conn)
     end
   end
 end
