@@ -41,6 +41,10 @@ class Firebase
     request.delete(path, query_options(query))
   end
 
+  def delete_multiple(base_path, nodes=[], query={})
+    request.delete_multiple(base_path, nodes, query_options(query))
+  end
+
   # Write the data at path but does not delete ommited children. Returns the data
   #   Firebase.update('users/info', { 'name' => 'Oscar' }) => { 'name' => 'Oscar' }
   def update(path, data, query={})
