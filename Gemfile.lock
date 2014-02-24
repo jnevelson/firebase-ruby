@@ -32,6 +32,7 @@ GEM
     multi_json (1.8.2)
     multi_xml (0.5.5)
     multipart-post (1.2.0)
+    net-http-persistent (2.9)
     nokogiri (1.5.10)
     oauth2 (0.9.2)
       faraday (~> 0.8)
@@ -60,4 +61,5 @@ DEPENDENCIES
   faraday
   jeweler (~> 1.8.3)
   json
+  net-http-persistent
   rspec

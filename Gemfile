@@ -5,6 +5,7 @@ source "http://rubygems.org"
 
 gem 'json'
 gem 'faraday'
+gem 'net-http-persistent'
 
 # Add dependencies to develop your gem here.
 # Include everything needed to run rake, tests, features, etc.
