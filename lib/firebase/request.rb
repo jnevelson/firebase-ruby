@@ -6,10 +6,13 @@ require 'net/http/persistent'
 class Firebase
   class Request
 
+    MAX_RETRIES = 3
+
     attr_reader :base_uri
 
     def initialize(base_uri)
       @base_uri = base_uri
+      initialize_connection
     end
 
     def get(path, query_options)
@@ -45,6 +48,10 @@ class Firebase
 
     private
 
+    def initialize_connection
+      @@connection = Faraday.new { |f| f.adapter(:net_http_persistent) }
+    end
+
     def process_multiple(method, path, nodes, query_options={})
       auth = query_options.delete(:auth)
       options = query_options.empty? ? nil : query_options.to_json
@@ -60,10 +67,16 @@ class Firebase
     def process(method, path, body=nil, query_options={})
       auth = query_options.delete(:auth)
       options = query_options.empty? ? nil : query_options.to_json
-      conn = Faraday.send(method, build_url(path, auth), options) do |faraday|
-        faraday.body = body if body
+      count = 0
+      begin
+        count += 1
+        res = @@connection.send(method, build_url(path, auth), options) { |f|	f.body = body if body }
+      rescue => e
+        initialize_connection
+        count < MAX_RETRIES ? retry : raise
       end
-      Firebase::Response.new(conn)
+      Firebase::Response.new(res)
     end
   end
 end
+
