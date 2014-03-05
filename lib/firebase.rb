@@ -42,7 +42,7 @@ class Firebase
   end
 
   def delete_multiple(base_path, nodes=[], query={})
-    request.delete_multiple(base_path, nodes, query_options(query))
+    nodes.map { |node| request.delete("#{base_path}/#{node}", query_options(query)) }
   end
 
   # Write the data at path but does not delete ommited children. Returns the data
