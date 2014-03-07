@@ -45,20 +45,27 @@ class Firebase
     private
 
     def initialize_connection
-      @@connection = Faraday.new { |f| f.adapter(:net_http_persistent) }
+      @connection ||= Faraday.new { |f| f.adapter(:net_http_persistent) }
     end
 
     def process(method, path, body=nil, query_options={})
       auth = query_options.delete(:auth)
       options = query_options.empty? ? nil : query_options.to_json
       count = 0
+
       begin
         count += 1
-        res = @@connection.send(method, build_url(path, auth), options) { |f|	f.body = body if body }
-      rescue => e
         initialize_connection
-        count < MAX_RETRIES ? retry : raise
+        res = @connection.send(method, build_url(path, auth), options) { |f| f.body = body if body }
+      rescue => e
+        if count < MAX_RETRIES
+          retry
+        else
+          @connection = nil
+          raise
+        end
       end
+
       Firebase::Response.new(res)
     end
   end
